@@ -18,18 +18,30 @@ support = WebSupport(
     )
 
 
-def jsonify(obj):
-    return HttpResponse(json.dumps(obj), mimetype='text/javascript')
+def jsonify(obj, jsonp=False):
+    if jsonp:
+        return HttpResponse("%s(%s)" % (jsonp, json.dumps(obj)), mimetype='text/javascript')
+    else:
+        return HttpResponse(json.dumps(obj), mimetype='text/javascript')
 
-def build(request):
-    support.build()
+########
+# called by javascript
+########
+def get_comments(request):
+    username = None
+    node_id = request.GET.get('node', '')
+    jsonp = request.GET.get('callback', None)
+    data = support.get_data(node_id, username=username)
+    return jsonify(data, jsonp=jsonp)
 
-def serve_file(request, file):
-    document = support.get_document(file)
+def get_options(request):
+    jsonp = request.GET.get('callback', None)
+    return jsonify(support.base_comment_opts, jsonp=jsonp)
 
-    return render_to_response('doc.html',
-                              {'document': document},
-                              context_instance=RequestContext(request))
+def get_metadata(request):
+    document = request.GET.get('document', '')
+    jsonp = request.GET.get('callback', None)
+    return jsonify(storage.get_metadata(docname=document), jsonp=jsonp)
 
 @csrf_exempt
 def add_comment(request):
@@ -43,20 +55,24 @@ def add_comment(request):
                                   username=username, proposal=proposal)
     return jsonify(comment)
 
-def get_comments(request):
-    username = None
-    node_id = request.GET.get('node', '')
-    data = support.get_data(node_id, username=username)
-    return jsonify(data)
 
+#######
+# Normal Views
+#######
 
-def get_metadata(request):
-    document = request.GET.get('document', '')
-    return jsonify(storage.get_metadata(docname=document))
+def build(request):
+    support.build()
 
-def get_options(request):
-    document = request.GET.get('document', '')
-    return jsonify(support.base_comment_opts)
+def serve_file(request, file):
+    document = support.get_document(file)
+
+    return render_to_response('doc.html',
+                              {'document': document},
+                              context_instance=RequestContext(request))
+
+######
+# Called by Builder
+######
 
 def has_node(request):
     node_id = request.GET.get('node_id', '')
