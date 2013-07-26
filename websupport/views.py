@@ -39,7 +39,7 @@ def get_options(request):
     return jsonify(support.base_comment_opts, jsonp=jsonp)
 
 def get_metadata(request):
-    document = request.GET.get('document', '')
+    document = request.GET.get('page_name', '')
     jsonp = request.GET.get('callback', None)
     return jsonify(storage.get_metadata(docname=document), jsonp=jsonp)
 
@@ -52,7 +52,7 @@ def add_comment(request):
     username = None
     comment = support.add_comment(text=text, node_id=node_id,
                                   parent_id=parent_id,
-                                  username=username, proposal=proposal)
+                                  username=username, proposal=proposal) 
     return jsonify(comment)
 
 
@@ -85,5 +85,7 @@ def add_node(request):
     document = post_data.get('document', '')
     id = post_data.get('id', '')
     source = post_data.get('source', '')
-    created = storage.add_node(id, document, source)
+    project = post_data.get('project', '')
+    version = post_data.get('version', '')
+    created = storage.add_node(id, document, source, project=project, version=version)
     return jsonify({'created': created})

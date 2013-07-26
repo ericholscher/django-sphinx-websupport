@@ -1,11 +1,10 @@
 import json
-import requests
 
-from sphinx.websupport.storage import StorageBackend
 from django.core import serializers
-
+from sphinx.websupport.storage import StorageBackend
 
 from .models import SphinxComment, SphinxNode
+from projects.models import Project
 
 class DjangoStorage(StorageBackend):
     """
@@ -15,9 +14,17 @@ class DjangoStorage(StorageBackend):
     def has_node(self, id):
         return SphinxNode.objects.filter(hash=id).exists()
 
-    def add_node(self, id, document, source):
-       node, created = SphinxNode.objects.get_or_create(hash=id, document=document, source=source)
-       return created
+    def add_node(self, id, document, source, project, version):
+        project_obj = Project.objects.get(slug=project)
+        version_obj = project_obj.versions.get(slug=version)
+        node, created = SphinxNode.objects.get_or_create(
+            hash=id, 
+            document=document, 
+            source=source,
+            project=project_obj,
+            version=version_obj,
+        )
+        return created
 
     def get_metadata(self, docname, moderator=None):
         ret_dict = {}
@@ -40,8 +47,6 @@ class DjangoStorage(StorageBackend):
 
     def add_comment(self, text, displayed, username, time,
                     proposal, node_id, parent_id, moderator):
-        proposal_diff = None
-        proposal_diff_text = None
 
         node = SphinxNode.objects.get(hash=node_id)
         comment = SphinxComment.objects.create(node=node, text=text, displayed=displayed, rating=0)
@@ -49,25 +54,3 @@ class DjangoStorage(StorageBackend):
         data = json.loads(serializers.serialize("json", [comment]))[0]
         return data 
 
-
-class WebStorage(StorageBackend):
-    """
-    A storage class meant to be used by the Sphinx Builder to store nodes.
-
-    This is super inefficient and a hack right now. 
-    When in prod we'll store all nodes to be added and send them all up at once like with sync_versions.
-
-    """
-
-    def has_node(self, id):
-        url = "http://localhost:8000/websupport/_has_node"
-        data = {'node_id': id,}
-        r = requests.get(url, params=data)
-        return r.json['exists']
-
-    def add_node(self, id, document, source):
-        url = "http://localhost:8000/websupport/_add_node"
-        data = {'id': id, 'document': document, 'source': source}
-        headers = {'Content-type': 'application/json'}
-        r = requests.post(url, data=json.dumps(data), headers=headers)
-        return True
