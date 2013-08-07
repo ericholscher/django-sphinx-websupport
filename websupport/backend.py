@@ -33,7 +33,10 @@ class DjangoStorage(StorageBackend):
         return ret_dict
 
     def get_data(self, node_id, username, moderator=None):
-        node = SphinxNode.objects.get(hash=node_id)
+        try:
+            node = SphinxNode.objects.get(hash=node_id)
+        except SphinxNode.DoesNotExist:
+            return None
         ret_comments = []
         for comment in node.comments.all():
             json_data = json.loads(serializers.serialize("json", [comment]))[0]['fields']

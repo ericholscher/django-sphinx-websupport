@@ -1,11 +1,19 @@
 import json
 
 from .backend import DjangoStorage
-from django.http import HttpResponse
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.views.decorators.csrf import csrf_exempt
 from sphinx.websupport import WebSupport
+
+from rest_framework import permissions
+from rest_framework.renderers import JSONRenderer, JSONPRenderer, BrowsableAPIRenderer
+from rest_framework.decorators import (
+    api_view, 
+    permission_classes, 
+    renderer_classes
+    )
+from rest_framework.response import Response
 
 storage = DjangoStorage()
 
@@ -18,32 +26,43 @@ support = WebSupport(
     )
 
 
-def jsonify(obj, jsonp=False):
-    if jsonp:
-        return HttpResponse("%s(%s)" % (jsonp, json.dumps(obj)), mimetype='text/javascript')
-    else:
-        return HttpResponse(json.dumps(obj), mimetype='text/javascript')
-
 ########
 # called by javascript
 ########
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticatedOrReadOnly])
+@renderer_classes((JSONRenderer, JSONPRenderer, BrowsableAPIRenderer))
 def get_comments(request):
     username = None
     node_id = request.GET.get('node', '')
-    jsonp = request.GET.get('callback', None)
     data = support.get_data(node_id, username=username)
-    return jsonify(data, jsonp=jsonp)
+    if data:
+        return Response(data)
+    else:
+        return Response(status=404)
 
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticatedOrReadOnly])
+@renderer_classes((JSONRenderer, JSONPRenderer, BrowsableAPIRenderer))
 def get_options(request):
-    jsonp = request.GET.get('callback', None)
-    return jsonify(support.base_comment_opts, jsonp=jsonp)
+    return Response(support.base_comment_opts)
 
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticatedOrReadOnly])
+@renderer_classes((JSONRenderer, JSONPRenderer, BrowsableAPIRenderer))
 def get_metadata(request):
+    """
+    Check for get_metadata
+    GET: page_name 
+    """
     document = request.GET.get('page_name', '')
-    jsonp = request.GET.get('callback', None)
-    return jsonify(storage.get_metadata(docname=document), jsonp=jsonp)
+    return Response(storage.get_metadata(docname=document))
 
 @csrf_exempt
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticatedOrReadOnly])
+@renderer_classes((JSONRenderer, JSONPRenderer))
 def add_comment(request):
     parent_id = request.POST.get('parent', '')
     node_id = request.POST.get('node', '')
@@ -53,7 +72,7 @@ def add_comment(request):
     comment = support.add_comment(text=text, node_id=node_id,
                                   parent_id=parent_id,
                                   username=username, proposal=proposal) 
-    return jsonify(comment)
+    return Response(comment)
 
 
 #######
@@ -74,12 +93,20 @@ def serve_file(request, file):
 # Called by Builder
 ######
 
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticatedOrReadOnly])
 def has_node(request):
+    """
+    Checks to see if a node exists.
+    GET: node_id - The node's ID to check
+    """
     node_id = request.GET.get('node_id', '')
     exists = storage.has_node(node_id)
-    return jsonify({'exists': exists})
+    return Response({'exists': exists})
 
 @csrf_exempt
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticatedOrReadOnly])
 def add_node(request):
     post_data = json.loads(request.raw_post_data)
     document = post_data.get('document', '')
@@ -88,4 +115,4 @@ def add_node(request):
     project = post_data.get('project', '')
     version = post_data.get('version', '')
     created = storage.add_node(id, document, source, project=project, version=version)
-    return jsonify({'created': created})
+    return Response({'created': created})
