@@ -63,7 +63,7 @@ def get_metadata(request):
     return Response(storage.get_metadata(docname=document))
 
 @api_view(['GET', 'POST'])
-@permission_classes([permissions.IsAuthenticatedOrReadOnly])
+#@permission_classes([permissions.IsAuthenticatedOrReadOnly])
 @authentication_classes([UnsafeSessionAuthentication])
 @renderer_classes((JSONRenderer, JSONPRenderer))
 def add_comment(request):
@@ -108,7 +108,7 @@ def has_node(request):
     return Response({'exists': exists})
 
 @api_view(['GET', 'POST'])
-@permission_classes([permissions.IsAuthenticatedOrReadOnly])
+#@permission_classes([permissions.IsAuthenticatedOrReadOnly])
 @authentication_classes([UnsafeSessionAuthentication])
 @renderer_classes((JSONRenderer, JSONPRenderer))
 def add_node(request):
