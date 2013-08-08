@@ -1,7 +1,9 @@
 import json
 
 from .backend import DjangoStorage
+from .session import UnsafeSessionAuthentication
 from django.shortcuts import render_to_response
+from django.utils.decorators import method_decorator
 from django.template import RequestContext
 from django.views.decorators.csrf import csrf_exempt
 from sphinx.websupport import WebSupport
@@ -10,8 +12,9 @@ from rest_framework import permissions
 from rest_framework.renderers import JSONRenderer, JSONPRenderer, BrowsableAPIRenderer
 from rest_framework.decorators import (
     api_view, 
+    authentication_classes,
     permission_classes, 
-    renderer_classes
+    renderer_classes,
     )
 from rest_framework.response import Response
 
@@ -59,9 +62,9 @@ def get_metadata(request):
     document = request.GET.get('page_name', '')
     return Response(storage.get_metadata(docname=document))
 
-@csrf_exempt
-@api_view(['GET'])
+@api_view(['GET', 'POST'])
 @permission_classes([permissions.IsAuthenticatedOrReadOnly])
+@authentication_classes([UnsafeSessionAuthentication])
 @renderer_classes((JSONRenderer, JSONPRenderer))
 def add_comment(request):
     parent_id = request.POST.get('parent', '')
@@ -104,9 +107,10 @@ def has_node(request):
     exists = storage.has_node(node_id)
     return Response({'exists': exists})
 
-@csrf_exempt
-@api_view(['GET'])
+@api_view(['GET', 'POST'])
 @permission_classes([permissions.IsAuthenticatedOrReadOnly])
+@authentication_classes([UnsafeSessionAuthentication])
+@renderer_classes((JSONRenderer, JSONPRenderer))
 def add_node(request):
     post_data = json.loads(request.raw_post_data)
     document = post_data.get('document', '')
