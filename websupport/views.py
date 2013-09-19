@@ -3,9 +3,7 @@ import json
 from .backend import DjangoStorage
 from .session import UnsafeSessionAuthentication
 from django.shortcuts import render_to_response
-from django.utils.decorators import method_decorator
 from django.template import RequestContext
-from django.views.decorators.csrf import csrf_exempt
 from sphinx.websupport import WebSupport
 
 from rest_framework import permissions
@@ -108,9 +106,9 @@ def has_node(request):
     return Response({'exists': exists})
 
 @api_view(['GET', 'POST'])
-#@permission_classes([permissions.IsAuthenticatedOrReadOnly])
+@permission_classes([permissions.AllowAny])
 @authentication_classes([UnsafeSessionAuthentication])
-@renderer_classes((JSONRenderer, JSONPRenderer))
+@renderer_classes((JSONRenderer,))
 def add_node(request):
     post_data = json.loads(request.raw_post_data)
     document = post_data.get('document', '')
