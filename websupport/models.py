@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.utils.translation import ugettext_lazy as _, ugettext
+from django.utils.translation import ugettext_lazy as _
 
 from projects.models import Project
 from builds.models import Version
@@ -23,7 +23,7 @@ class SphinxNode(models.Model):
     source = models.TextField(_('Source'))
 
     def __unicode__(self):
-        return "%s on %s" % (self.hash, self.document)
+        return "%s on %s for %s" % (self.hash, self.document, self.project)
 
 class SphinxComment(models.Model):
     """
