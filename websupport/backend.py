@@ -53,6 +53,6 @@ class DjangoStorage(StorageBackend):
         node = SphinxNode.objects.get(hash=node_id)
         comment = SphinxComment.objects.create(node=node, text=text, displayed=displayed, rating=0)
 
-        data = json.loads(serializers.serialize("json", [comment]))[0]
+        data = json.loads(serializers.serialize("json", [comment]))[0]['fields']
         return data 
 
