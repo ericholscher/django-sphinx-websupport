@@ -7,13 +7,7 @@ from builds.models import Version
 
 
 class SphinxNode(models.Model):
-    """
-    Original Sphinx Websupport schema:
-    id VARCHAR(32) NOT NULL,
-    document VARCHAR(256) NOT NULL,
-    source TEXT NOT NULL,
-    PRIMARY KEY (id)
-    """
+    date = models.DateTimeField('Publication date', auto_now_add=True)
     project = models.ForeignKey(Project, verbose_name=_('Project'),
                                 related_name='nodes', null=True)
     version = models.ForeignKey(Version, verbose_name=_('Version'),
@@ -26,23 +20,6 @@ class SphinxNode(models.Model):
         return "%s on %s for %s" % (self.hash, self.document, self.project)
 
 class SphinxComment(models.Model):
-    """
-    Original Sphinx Websupport schema:
-
-    rating INTEGER NOT NULL,
-    time DATETIME NOT NULL,
-    text TEXT NOT NULL,
-    displayed BOOLEAN,
-    username VARCHAR(64),
-    proposal TEXT,
-    proposal_diff TEXT,
-    path VARCHAR(256),
-    node_id VARCHAR,
-    PRIMARY KEY (id),
-    CHECK (displayed IN (0, 1)),
-    FOREIGN KEY(node_id) REFERENCES sphinx_nodes (id)
-    """
-
     date = models.DateTimeField(_('Date'), auto_now_add=True)
     rating = models.IntegerField(_('Rating'), default=0)
     # Comments

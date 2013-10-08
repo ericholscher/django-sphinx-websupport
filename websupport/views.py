@@ -55,9 +55,9 @@ def get_options(request):
 def get_metadata(request):
     """
     Check for get_metadata
-    GET: page_name 
+    GET: page
     """
-    document = request.GET.get('page_name', '')
+    document = request.GET.get('page', '')
     return Response(storage.get_metadata(docname=document))
 
 @api_view(['GET', 'POST'])
