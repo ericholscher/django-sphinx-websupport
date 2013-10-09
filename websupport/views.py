@@ -61,7 +61,7 @@ def get_metadata(request):
     return Response(storage.get_metadata(docname=document))
 
 @api_view(['GET', 'POST'])
-#@permission_classes([permissions.IsAuthenticatedOrReadOnly])
+@permission_classes([permissions.AllowAny])
 @authentication_classes([UnsafeSessionAuthentication])
 @renderer_classes((JSONRenderer, JSONPRenderer))
 def add_comment(request):
