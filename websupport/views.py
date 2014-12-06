@@ -110,7 +110,7 @@ def has_node(request):
 @authentication_classes([UnsafeSessionAuthentication])
 @renderer_classes((JSONRenderer,))
 def add_node(request):
-    post_data = json.loads(request.raw_post_data)
+    post_data = request.DATA
     document = post_data.get('document', '')
     id = post_data.get('id', '')
     source = post_data.get('source', '')

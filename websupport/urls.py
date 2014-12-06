@@ -1,5 +1,4 @@
-from django.conf.urls.defaults import patterns, url
-
+from django.conf.urls import url, patterns, include
 
 urlpatterns = patterns(
     # base view, flake8 complains if it is on the previous line.
